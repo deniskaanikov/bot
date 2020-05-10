@@ -71,8 +71,8 @@ for i in range(len(rea) - 1):
     l = rea[i][:-1]
     lines.append(l)
 lines.append(rea[-1])
-quest_a = list(filter(lambda x: lines.index(x) % 2 == 0, lines))[:5]
-quest_b = list(filter(lambda x: lines.index(x) % 2 != 0, lines))[:5]
+quest_a = list(filter(lambda x: lines.index(x) % 2 == 0, lines))
+quest_b = list(filter(lambda x: lines.index(x) % 2 != 0, lines))
 for event in longpoll.listen():
     if event.type == VkEventType.MESSAGE_NEW:
         if event.to_me:
