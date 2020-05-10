@@ -2,6 +2,7 @@ import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 import os
 
+
 def write_message(user_id, random_id, message):
     vk.method('messages.send', {'user_id': user_id, 'message': message, 'random_id': random_id})
 
@@ -18,7 +19,7 @@ def callback_message(user_id, random_id, input_msg):
             num_question = len(feedback[user_id]) + 1
         if num_question <= len(quest_a):
             question = next_question(num_question)
-            callback_msg = "ВОПРОС {}/{}\nВыберете ответ: a или б\n{}"\
+            callback_msg = "ВОПРОС {}/{}\nВыберете ответ: a или б\n{}" \
                 .format(num_question, len(quest_a), question)
             write_message(user_id, random_id, callback_msg)
         else:
@@ -26,10 +27,30 @@ def callback_message(user_id, random_id, input_msg):
             analyse(user_id, random_id)
 
 
+def rezult_of_analiticks(results):
+    Real_type_list = {'1а', '2а', '3а', '4а', '5а', '16а', '17а', '18а', '19а', '21а', '31а', '32а', '33а', '34а'}
+    IQ_type_list = {'1б', '6а', '7а', '8а', '9а', '16б', '20а', '22а', '23а', '24а', '31б', '35а', '36а', '37а'}
+    Social_type_list = {'2б', '6б', '10а', '11а', '12а', '17б', '29б', '25а', '26а', '27а', '36б', '38а', '39а',
+                           '41б'}
+    Konvenc_type_list = {'3б', '7б', '10б', '13а', '14а', '18б', '22б', '25б', '28а', '29а', '32б', '38б', '40а',
+                            '42а'}
+    Buiseness_type_list = {'4б', '8б', '11б', '13б', '15а', '23б', '28б', '30а', '33б', '35б', '37б', '39б', '40б'}
+    Artist_type_list = {'5б', '9б', '12б', '14б', '15б', '19б', '21б', '24а', '27б', '29б', '30б', '34б', '41а',
+                           '42б'}
+    type_list = [Real_type_list, IQ_type_list, Social_type_list, Konvenc_type_list, Buiseness_type_list,
+                 Artist_type_list]
+    rez = list()
+    for i in type_list:
+        rez.append(results.intersection(i))
+    answers = ['Реалистический тип', 'Интеллектуальный тип', 'Социальный тип', 'Конвенциальный тип',
+                   'Предприимчивый тип', 'Артистический тип']
+    return ', '.join([answers[i] for i in range(len(answers)) if rez[i] == max(rez)])
+
+
 def analyse(user_id, random_id):
     write_message(user_id, random_id, "РЕЗУЛЬТАТЫ")
     write_message(user_id, random_id, ' '.join(feedback[user_id]))
-    res = feedback[user_id]
+    write_message(user_id, random_id, rezult_of_analiticks(set(feedback[user_id])))
     feedback.pop(user_id)
 
 
@@ -37,21 +58,21 @@ def next_question(num):
     return "а) {}\tб) {}".format(quest_a[num - 1], quest_b[num - 1])
 
 
-# token = os.environ.get('BOT_TOKEN')
-token = 'e828d8ce2142893fd3383626875e9b59ca6f9b64c9e9edf28810ca7a2f9ac8d837708df1c829b67d17603'
+token = os.environ.get('BOT_TOKEN')
 normal_msg = ['Начать', 'а', 'б']
 vk = vk_api.VkApi(token=token)
 longpoll = VkLongPoll(vk)
 feedback = dict()
-in_file = open('questions.txt', 'r')
+in_file = open('questions.txt', 'r', encoding='utf-8')
 rea = in_file.readlines()
 in_file.close()
 lines = []
-for i in range(len(rea)):
+for i in range(len(rea) - 1):
     l = rea[i][:-1]
     lines.append(l)
-quest_a = list(filter(lambda x: lines.index(x) % 2 == 0, lines))
-quest_b = list(filter(lambda x: lines.index(x) % 2 != 0, lines))
+lines.append(rea[-1])
+quest_a = list(filter(lambda x: lines.index(x) % 2 == 0, lines))[:5]
+quest_b = list(filter(lambda x: lines.index(x) % 2 != 0, lines))[:5]
 for event in longpoll.listen():
     if event.type == VkEventType.MESSAGE_NEW:
         if event.to_me:
